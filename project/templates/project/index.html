@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+{% load static tailwind_tags %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %} Webpage {% endblock  %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% tailwind_css %}
+</head>
+<style>
+
+</style>
+<body class="flex justify-center">
+    <section class=" shadow-lg shadow-green-400 max-w-96 mx-auto my-10">
+        <aside>
+            <p class="text-center text-3xl bg-green-600">ChatBot</p>
+        </aside>
+
+        <main class="p-10">
+           
+           <main class="flex justify-center mb-4">
+            <div class=" bg-green-100 rounded-full w-fit p-3">
+                <img class="w-16 animate-bounce" src="{% static 'img/robot.jpg' %}" alt="" srcset="">
+            </div>
+           </main>
+
+            <aside class="bg-slate-100 p-2 rounded-3xl mb-3">
+                <h1 class="font-bold">I am Yoruba chatbot</h1>
+            </aside>
+
+            <div id="chat-history" class="chat-history mb-4">
+                <!-- chat history -->
+            </div>
+
+            <form action="" method="post" id="chat-form">
+                {% csrf_token %}
+                <input name="chat_inp" id="chat-input" class="text-red-700 border-gray-400 rounded-2xl bg-transparent appearance-none focus:outline-none leading-tight font-serif focus:border-transparent focus:ring-gray-400 focus:border-b-2 shadow-gray-700 will-change-scroll" type="text" placeholder="type here...">
+                
+                <button type="submit" class="bg-green-600 text-center text-xl p-2 text-white shadow-md shadow-gray-600 w-12 rounded-full
+                ">
+                <ion-icon name="send"></ion-icon>
+            </button>
+            </form>
+        </main>
+    </section>
+
+    {% if chat_message %}
+      <div class="text-center bg-yellow-200 p-4">
+        {{ chat_message }}
+      </div>
+    {% endif %}
+
+    <script src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons.js"></script>
+
+    <!-- javascript -->
+     <script>
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const chatHistory = document.getElementById('chat-history');
+
+        chatForm.addEventListener('submit', function(event){
+            event.preventDefault();
+
+            const message = chatInput.value.trim()
+
+            if(message){
+                const messageWrapper = document.createElement('div');
+                messageWrapper.classList.add('chat_message', 'user');
+
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message', 'user');
+                messageElement.textContent = message;
+
+                messageWrapper.appendChild(messageElement);
+                chatHistory.appendChild(messageWrapper);
+                chatInput.value ='';
+
+                fetch("{% url 'response' %}", {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: new URLSearchParams({
+                        'csrfmiddlewaretoken' : document.querySelector('[name=csrfmiddlewaretoken]'),
+                        'message' : message
+                    })
+                })
+
+                .then(response => response.json())
+                .then(data => {
+                    const response = data.response;
+                    const messageWrapper2 = document.createElement('div');
+                    messageWrapper2.classList.add('chat-message', 'ai');
+
+                    const messageElement2 = document.createElement('div');
+                    messageElement2.classList.add('message', 'ai');
+                    messageElement2.textContent = response;
+
+                    messageWrapper2.appendChild(messageElement2);
+                    chatHistory.appendChild(messageWrapper2);
+                })
+                chatHistory.scrollTop = chatHistory.scrollHeight
+            }
+        })
+     </script>
+     <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>
